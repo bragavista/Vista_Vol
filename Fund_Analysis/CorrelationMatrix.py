@@ -1,6 +1,8 @@
 import BloombergAPI_new
 import pandas as pd
 from Util import QuantMetrics
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -42,6 +44,12 @@ start_date   =   '20150101'
 end_date     =   '20200903'
 
 blp = BloombergAPI_new.BLPInterface()
+
 FundsRawPrices = blp.historicalRequest(FundList,'px_last',start_date,end_date)
 
-CorrMatrix = QuantMetrics.corr_matrix_from_prices(PricesDataframe=FundsRawPrices)
+corr_matrix = QuantMetrics.corr_matrix_from_prices(PricesDataframe=FundsRawPrices)
+
+sns.heatmap(CorrMatrix,annot=True)
+plt.show()
+
+

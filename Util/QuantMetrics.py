@@ -32,9 +32,6 @@ def corr_matrix_masking (corr_matrix):
 
     sns.heatmap(corr_matrix, annot=True, mask=matrix,cmap=cmap,linewidths=3, linecolor='white',cbar=False)
 
-
-
-
     return
 
 

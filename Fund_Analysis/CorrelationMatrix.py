@@ -10,6 +10,7 @@ pd.set_option('display.width', 1000)
 
 
 FundList = [    "VISTMUL BZ Equity",
+                "IFMMIFMM Index",
                 "STHFIC BZ Equity",
                 "KAPKFFF BZ Equity",
                 "SPXNIMF BZ Equity",
@@ -25,6 +26,7 @@ FundList = [    "VISTMUL BZ Equity",
 
 FundNames = {
                 "VISTMUL BZ Equity": "VISTA MULTI",
+                "IFMMIFMM Index" : "BTG HF Index",
                 "STHFIC BZ Equity":  "ibiuna hedge sth",
                 "KAPKFFF BZ Equity": "kapitalo kappa",
                 "SPXNIMF BZ Equity": "spx nimitz",
@@ -40,8 +42,8 @@ FundNames = {
 
 }
 
-start_date   =   '20150101'
-end_date     =   '20200903'
+start_date   =   '20190101'
+end_date     =   '20200101'
 
 blp = BloombergAPI_new.BLPInterface()
 
@@ -49,7 +51,6 @@ FundsRawPrices = blp.historicalRequest(FundList,'px_last',start_date,end_date)
 
 corr_matrix = QuantMetrics.corr_matrix_from_prices(PricesDataframe=FundsRawPrices)
 
-sns.heatmap(CorrMatrix,annot=True)
-plt.show()
+QuantMetrics.corr_matrix_masking(corr_matrix)
 
 

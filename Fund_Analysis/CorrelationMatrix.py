@@ -67,7 +67,7 @@ cmap = mcolors.LinearSegmentedColormap(
 # cmap = sns.palplot(sns.diverging_palette(10, 220, sep=80, n=7))
 matrix = np.triu(corr_matrix)
 ax = plt.axes()
-sns.heatmap(corr_matrix, annot=True, mask=matrix, cmap=cmap, linewidths=3, linecolor='white', cbar=False,ax = ax)
+sns.heatmap(corr_matrix.round(2), annot=True, mask=matrix, cmap=cmap, linewidths=3, linecolor='white', cbar=False,ax = ax)
 ax.set_title('Daily correlation from ' + start_date + ' to ' + end_date,fontsize=20)
 plt.show()
 

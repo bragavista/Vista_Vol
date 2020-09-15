@@ -13,7 +13,7 @@ def corr_matrix_from_prices (PricesDataframe):
     return corr_matrix
 
 
-def corr_matrix_masking (corr_matrix):
+def corr_matrix_masking_and_plotting (corr_matrix):
     cdict = {'red': ((0.0, 0.0, 0.0),
                      (0.5, 0.0, 0.0),
                      (1.0, 1.0, 1.0)),

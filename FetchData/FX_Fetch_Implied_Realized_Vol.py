@@ -68,6 +68,8 @@ def treat_raw_data_iv_pctle (implied_dict,raw_data):
 
         list_of_mats = list(implied_dict[fx_pair].keys())
 
+        Implied_Percentiles_fxpair = pd.DataFrame()
+
         for mat in list_of_mats:
 
             time_series = all_implied_vol_time_series[implied_dict[fx_pair][mat]]
@@ -75,19 +77,18 @@ def treat_raw_data_iv_pctle (implied_dict,raw_data):
             last_percentile = stats.percentileofscore(time_series, last_value)
 
             aux = pd.DataFrame(index=[fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
-            Implied_Percentile = pd.concat([Implied_Percentiles,aux],axis=1,sort=True)
+            Implied_Percentiles_fxpair = pd.concat([Implied_Percentiles_fxpair,aux],axis=1,sort=True)
+
+        Implied_Percentiles = Implied_Percentiles.append(Implied_Percentiles_fxpair)
+    #
+    #
+    # for implied_vol_series in all_implied_vol_time_series.columns:
+    #     time_series = all_implied_vol_time_series[implied_vol_series]
+    #     tested_value = time_series.tail(1)[0]
+    #     last_percentile = stats.percentileofscore(time_series,tested_value)
 
 
-
-
-    for implied_vol_series in all_implied_vol_time_series.columns:
-        time_series = all_implied_vol_time_series[implied_vol_series]
-        tested_value = time_series.tail(1)[0]
-        last_percentile = stats.percentileofscore(time_series,tested_value)
-
-
-
-    return
+    return Implied_Percentiles
 
 
 

@@ -53,7 +53,7 @@ def fx_fetch_implied_bbg(bloomberg_list,StartDate,EndDate):
 
 def treat_raw_data_iv_pctle (implied_dict,raw_data):
 
-    FinalDF = pd.DataFrame()
+    Implied_Percentiles = pd.DataFrame()
 
     Implied_Vols_list = list()
 
@@ -63,11 +63,28 @@ def treat_raw_data_iv_pctle (implied_dict,raw_data):
 
     all_implied_vol_time_series = raw_data[Implied_Vols_list]
 
-    for implied_vol_series in all_implied_vol_time_series.columns:
 
+    for fx_pair in implied_dict.keys():
+
+        list_of_mats = list(implied_dict[fx_pair].keys())
+
+        for mat in list_of_mats:
+
+            time_series = all_implied_vol_time_series[implied_dict[fx_pair][mat]]
+            last_value = time_series.tail(1)[0]
+            last_percentile = stats.percentileofscore(time_series, last_value)
+
+            aux = pd.DataFrame(index=[fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
+            Implied_Percentile = pd.concat([Implied_Percentiles,aux],axis=1,sort=True)
+
+
+
+
+    for implied_vol_series in all_implied_vol_time_series.columns:
         time_series = all_implied_vol_time_series[implied_vol_series]
         tested_value = time_series.tail(1)[0]
         last_percentile = stats.percentileofscore(time_series,tested_value)
+
 
 
     return

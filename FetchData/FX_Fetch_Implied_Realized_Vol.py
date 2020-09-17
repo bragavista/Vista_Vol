@@ -5,6 +5,9 @@ from datetime import date
 import datetime
 import dateutil.relativedelta
 from scipy import stats
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
 
 
 fx_master_dict = {
@@ -73,25 +76,54 @@ def treat_raw_data_iv_pctle (implied_dict,raw_data):
         for mat in list_of_mats:
 
             time_series = all_implied_vol_time_series[implied_dict[fx_pair][mat]]
-            last_value = time_series.tail(1)[0]
-            last_percentile = stats.percentileofscore(time_series, last_value)
+            last_value = round(time_series.tail(1)[0],1)
+            last_percentile = round(stats.percentileofscore(time_series, last_value),0)
 
             aux = pd.DataFrame(index=[fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
             Implied_Percentiles_fxpair = pd.concat([Implied_Percentiles_fxpair,aux],axis=1,sort=True)
 
         Implied_Percentiles = Implied_Percentiles.append(Implied_Percentiles_fxpair)
-    #
-    #
-    # for implied_vol_series in all_implied_vol_time_series.columns:
-    #     time_series = all_implied_vol_time_series[implied_vol_series]
-    #     tested_value = time_series.tail(1)[0]
-    #     last_percentile = stats.percentileofscore(time_series,tested_value)
-
 
     return Implied_Percentiles
 
 
+def treat_raw_data_iv_minus_rv_pctle (implied_dict,real_dict,raw_data):
 
+    Implied_minus_Realized_Percentiles = pd.DataFrame()
+
+    Implied_Vols_list = list()
+    Real_vols_list = list()
+
+
+    for fx_pair in implied_dict:
+        for mat in implied_dict[fx_pair]:
+            Implied_Vols_list.append(implied_dict[fx_pair][mat])
+            Real_vols_list.append(real_dict[fx_pair][mat])
+
+    all_implied_vol_time_series = raw_data[Implied_Vols_list]
+    all_realized_vol_time_series = raw_data[Real_vols_list]
+
+
+    for fx_pair in implied_dict.keys():
+
+        list_of_mats = list(implied_dict[fx_pair].keys())
+
+        Implied_Percentiles_iv_rv = pd.DataFrame()
+
+        for mat in list_of_mats:
+            time_series_iv = all_implied_vol_time_series[implied_dict[fx_pair][mat]]
+            time_series_rv = all_realized_vol_time_series[real_dict[fx_pair][mat]]
+            iv_rv_diff = time_series_iv - time_series_rv
+
+            last_value = round(iv_rv_diff.tail(1)[0],1)
+            last_percentile = round(stats.percentileofscore(iv_rv_diff, last_value),0)
+
+            aux = pd.DataFrame(index=[fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
+            Implied_Percentiles_iv_rv = pd.concat([Implied_Percentiles_iv_rv,aux],axis=1,sort=True)
+
+        Implied_minus_Realized_Percentiles = Implied_minus_Realized_Percentiles.append(Implied_Percentiles_iv_rv)
+
+    return Implied_minus_Realized_Percentiles
 
 
 
@@ -100,7 +132,21 @@ def treat_raw_data_iv_pctle (implied_dict,raw_data):
 
 if __name__ == "__main__":
 
+    print('hello, calculating FX iv and iv-rv data now')
     EndDate = date.today()
     StartDate = EndDate - dateutil.relativedelta.relativedelta(months=1)
     implied_dict,real_dict,bloomberg_list = crete_bbg_list (fx_master_dict = fx_master_dict)
     raw_data = fx_fetch_implied_bbg(bloomberg_list,StartDate,EndDate)
+
+
+
+    Implied_Percentiles = treat_raw_data_iv_pctle(implied_dict, raw_data)
+    print(Implied_Percentiles)
+
+    Implied_minus_Realized_Percentiles = treat_raw_data_iv_minus_rv_pctle(implied_dict, real_dict, raw_data)
+    print(Implied_minus_Realized_Percentiles)
+
+
+
+
+

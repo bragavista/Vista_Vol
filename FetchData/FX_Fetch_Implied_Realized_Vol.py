@@ -1,13 +1,19 @@
 import BloombergAPI_new as BloombergAPI
+import Util.EmailSender as EmailSender
 import pandas as pd
 import numpy as np
+import seaborn as sns
 from datetime import date
-import datetime
 import dateutil.relativedelta
 from scipy import stats
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
+import matplotlib.pyplot as plt
+from matplotlib import colors
+
+heatmap_green_red = sns.diverging_palette(160, 10, n=7,as_cmap=True)
+# sns.palplot(sns.diverging_palette(160, 10, n=7))
 
 
 fx_master_dict = {
@@ -43,8 +49,6 @@ def crete_bbg_list (fx_master_dict = fx_master_dict):
 
 
     return implied_dict,real_dict,bloomberg_list
-
-
 
 def fx_fetch_implied_bbg(bloomberg_list,StartDate,EndDate):
 
@@ -84,8 +88,16 @@ def treat_raw_data_iv_pctle (implied_dict,raw_data):
 
         Implied_Percentiles = Implied_Percentiles.append(Implied_Percentiles_fxpair)
 
-    return Implied_Percentiles
+    #applying heatmap
 
+    for column in Implied_Percentiles.columns:
+        if "pctle" in column:
+
+            # print(sns.heatmap(data=Implied_Percentiles,cmap=heatmap_green_red))
+            Implied_Percentiles[column].to_frame().style.background_gradient (cmap=heatmap_green_red)
+
+    # Implied_Percentiles.plot()
+    return Implied_Percentiles
 
 def treat_raw_data_iv_minus_rv_pctle (implied_dict,real_dict,raw_data):
 
@@ -123,7 +135,11 @@ def treat_raw_data_iv_minus_rv_pctle (implied_dict,real_dict,raw_data):
 
         Implied_minus_Realized_Percentiles = Implied_minus_Realized_Percentiles.append(Implied_Percentiles_iv_rv)
 
+
+
     return Implied_minus_Realized_Percentiles
+
+
 
 
 
@@ -138,15 +154,38 @@ if __name__ == "__main__":
     implied_dict,real_dict,bloomberg_list = crete_bbg_list (fx_master_dict = fx_master_dict)
     raw_data = fx_fetch_implied_bbg(bloomberg_list,StartDate,EndDate)
 
-
-
+    #creating DFs
     Implied_Percentiles = treat_raw_data_iv_pctle(implied_dict, raw_data)
     print(Implied_Percentiles)
 
     Implied_minus_Realized_Percentiles = treat_raw_data_iv_minus_rv_pctle(implied_dict, real_dict, raw_data)
     print(Implied_minus_Realized_Percentiles)
 
+    #formatting dfs
 
 
+    subset_heatmap = list()
+    for column in Implied_minus_Realized_Percentiles.columns:
+        if "pctle" in column:
+            subset_heatmap.append(column)
+
+    pre_render = Implied_minus_Realized_Percentiles.apply(pd.to_numeric).style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).format('{:1f}')
+    Implied_minus_Realized_Percentiles_final = pre_render.render(precision=1)
+
+
+    subset_heatmap = list()
+    for column in Implied_Percentiles.columns:
+        if "pctle" in column:
+            subset_heatmap.append(column)
+
+    pre_render2 = Implied_Percentiles.apply(pd.to_numeric).style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).format('{:1f}')
+    Implied_Percentiles_final = pre_render2.render(precision=1)
+
+
+
+    #creating html for email
+    html_string = Implied_Percentiles_final + '<br>'+Implied_minus_Realized_Percentiles_final
+
+    EmailSender.send_email_simple (mail_to='abraga@vistacapital.com.br',subject='Vol Baseline',bodymsg='hi',html_body=html_string,attachment=False)
 
 

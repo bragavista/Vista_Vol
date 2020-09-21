@@ -24,7 +24,7 @@ fx_master_dict = {
                 'Asia EM' : ['USDTWD','USDINR']
             }
 
-maturities_bbg_style = ['2W','1M','3M','6M','1Y']
+maturities_bbg_style = ['1M','3M','6M','1Y']
 
 
 def fx_to_region(fx_pair,fx_master_dict=fx_master_dict):
@@ -95,21 +95,18 @@ def treat_raw_data_iv_pctle (implied_dict,raw_data):
             time_series = all_implied_vol_time_series[implied_dict[fx_pair][mat]]
             last_value = round(time_series.tail(1)[0],1)
             last_percentile = round(stats.percentileofscore(time_series, last_value),0)
-            region = fx_to_region(fx_pair,fx_master_dict=fx_master_dict)
-            aux = pd.DataFrame(index=[region + ' -  ' + fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
+            aux = pd.DataFrame(index=[fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
             Implied_Percentiles_fxpair = pd.concat([Implied_Percentiles_fxpair,aux],axis=1,sort=True)
 
         Implied_Percentiles = Implied_Percentiles.append(Implied_Percentiles_fxpair)
 
-    #applying heatmap
 
-    for column in Implied_Percentiles.columns:
-        if "pctle" in column:
 
-            # print(sns.heatmap(data=Implied_Percentiles,cmap=heatmap_green_red))
-            Implied_Percentiles[column].to_frame().style.background_gradient (cmap=heatmap_green_red)
+    region_aux = pd.DataFrame(data=[fx_to_region(fx_pair) for fx_pair in Implied_Percentiles.index],columns=['Region'],index=Implied_Percentiles.index)
+    Implied_Percentiles = pd.concat([region_aux,Implied_Percentiles],axis=1,sort=False)
+    Implied_Percentiles = Implied_Percentiles.rename_axis('Implieds')
 
-    # Implied_Percentiles.plot()
+
     return Implied_Percentiles
 
 def treat_raw_data_iv_minus_rv_pctle (implied_dict,real_dict,raw_data):
@@ -143,15 +140,15 @@ def treat_raw_data_iv_minus_rv_pctle (implied_dict,real_dict,raw_data):
             last_value = round(iv_rv_diff.tail(1)[0],1)
             last_percentile = round(stats.percentileofscore(iv_rv_diff, last_value),0)
 
-            region = fx_to_region(fx_pair,fx_master_dict=fx_master_dict)
-
-
-            aux = pd.DataFrame(index=[region + ' -  ' + fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
+            aux = pd.DataFrame(index=[fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
             Implied_Percentiles_iv_rv = pd.concat([Implied_Percentiles_iv_rv,aux],axis=1,sort=True)
 
         Implied_minus_Realized_Percentiles = Implied_minus_Realized_Percentiles.append(Implied_Percentiles_iv_rv)
 
+    region_aux = pd.DataFrame(data=[fx_to_region(fx_pair) for fx_pair in Implied_Percentiles.index],columns=['Region'],index=Implied_Percentiles.index)
+    Implied_minus_Realized_Percentiles = pd.concat([region_aux,Implied_minus_Realized_Percentiles],axis=1,sort=False)
 
+    Implied_minus_Realized_Percentiles = Implied_minus_Realized_Percentiles.rename_axis('Implied - Real')
 
     return Implied_minus_Realized_Percentiles
 
@@ -164,9 +161,10 @@ def treat_raw_data_iv_minus_rv_pctle (implied_dict,real_dict,raw_data):
 
 if __name__ == "__main__":
 
+    last_n_months = 12
     print('hello, calculating FX iv and iv-rv data now')
     EndDate = date.today()
-    StartDate = EndDate - dateutil.relativedelta.relativedelta(months=1)
+    StartDate = EndDate - dateutil.relativedelta.relativedelta(months=last_n_months)
     implied_dict,real_dict,bloomberg_list = crete_bbg_list (fx_master_dict = fx_master_dict)
     raw_data = fx_fetch_implied_bbg(bloomberg_list,StartDate,EndDate)
 
@@ -185,7 +183,7 @@ if __name__ == "__main__":
         if "pctle" in column:
             subset_heatmap.append(column)
 
-    pre_render = Implied_minus_Realized_Percentiles.apply(pd.to_numeric).style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).set_precision(1)
+    pre_render = Implied_minus_Realized_Percentiles.style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).set_precision(1).set_properties(**{'text-align': 'center'})
     Implied_minus_Realized_Percentiles_final = pre_render.render()
 
 
@@ -194,14 +192,15 @@ if __name__ == "__main__":
         if "pctle" in column:
             subset_heatmap.append(column)
 
-    pre_render2 = Implied_Percentiles.round(1).apply(pd.to_numeric).style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).set_precision(1)
+    pre_render2 = Implied_Percentiles.style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).set_precision(1).set_properties(**{'text-align': 'center'})
     Implied_Percentiles_final = pre_render2.render()
 
 
 
     #creating html for email
-    html_string = Implied_Percentiles_final + '<br>'+Implied_minus_Realized_Percentiles_final
-
-    EmailSender.send_email_simple (mail_to='abraga@vistacapital.com.br',subject='Vol Baseline',bodymsg='hi',html_body=html_string,attachment=False)
+    html_string = 'red is buy, green is sell' + '<br>'+Implied_Percentiles_final + '<br>'+Implied_minus_Realized_Percentiles_final
+    subject = 'Vol Baseline for ' + str(EndDate) + '  -  '+str(last_n_months)+' months of data'
+    mail_to = 'abraga@vistacapital.com.br'
+    EmailSender.send_email_simple (mail_to=mail_to,subject=subject,bodymsg='hi',html_body=html_string,attachment=False)
 
 

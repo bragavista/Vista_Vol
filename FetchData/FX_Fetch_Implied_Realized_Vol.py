@@ -27,6 +27,19 @@ fx_master_dict = {
 maturities_bbg_style = ['2W','1M','3M','6M','1Y']
 
 
+def fx_to_region(fx_pair,fx_master_dict=fx_master_dict):
+
+    region_final ='no_region_mapped'
+
+    for region in fx_master_dict.keys():
+
+        if fx_pair in fx_master_dict[region]:
+            region_final = region
+
+    return region_final
+
+
+
 def crete_bbg_list (fx_master_dict = fx_master_dict):
 
     implied_dict = dict()
@@ -82,8 +95,8 @@ def treat_raw_data_iv_pctle (implied_dict,raw_data):
             time_series = all_implied_vol_time_series[implied_dict[fx_pair][mat]]
             last_value = round(time_series.tail(1)[0],1)
             last_percentile = round(stats.percentileofscore(time_series, last_value),0)
-
-            aux = pd.DataFrame(index=[fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
+            region = fx_to_region(fx_pair,fx_master_dict=fx_master_dict)
+            aux = pd.DataFrame(index=[region + ' -  ' + fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
             Implied_Percentiles_fxpair = pd.concat([Implied_Percentiles_fxpair,aux],axis=1,sort=True)
 
         Implied_Percentiles = Implied_Percentiles.append(Implied_Percentiles_fxpair)
@@ -130,7 +143,10 @@ def treat_raw_data_iv_minus_rv_pctle (implied_dict,real_dict,raw_data):
             last_value = round(iv_rv_diff.tail(1)[0],1)
             last_percentile = round(stats.percentileofscore(iv_rv_diff, last_value),0)
 
-            aux = pd.DataFrame(index=[fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
+            region = fx_to_region(fx_pair,fx_master_dict=fx_master_dict)
+
+
+            aux = pd.DataFrame(index=[region + ' -  ' + fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
             Implied_Percentiles_iv_rv = pd.concat([Implied_Percentiles_iv_rv,aux],axis=1,sort=True)
 
         Implied_minus_Realized_Percentiles = Implied_minus_Realized_Percentiles.append(Implied_Percentiles_iv_rv)
@@ -169,8 +185,8 @@ if __name__ == "__main__":
         if "pctle" in column:
             subset_heatmap.append(column)
 
-    pre_render = Implied_minus_Realized_Percentiles.apply(pd.to_numeric).style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).format('{:1f}')
-    Implied_minus_Realized_Percentiles_final = pre_render.render(precision=1)
+    pre_render = Implied_minus_Realized_Percentiles.apply(pd.to_numeric).style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).set_precision(1)
+    Implied_minus_Realized_Percentiles_final = pre_render.render()
 
 
     subset_heatmap = list()
@@ -178,8 +194,8 @@ if __name__ == "__main__":
         if "pctle" in column:
             subset_heatmap.append(column)
 
-    pre_render2 = Implied_Percentiles.apply(pd.to_numeric).style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).format('{:1f}')
-    Implied_Percentiles_final = pre_render2.render(precision=1)
+    pre_render2 = Implied_Percentiles.round(1).apply(pd.to_numeric).style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).set_precision(1)
+    Implied_Percentiles_final = pre_render2.render()
 
 
 

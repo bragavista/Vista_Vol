@@ -1,6 +1,5 @@
-import BloombergAPI_new
 import pandas as pd
-from Util import QuantMetrics
+from Util import QuantMetrics, BloombergAPI_new
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors

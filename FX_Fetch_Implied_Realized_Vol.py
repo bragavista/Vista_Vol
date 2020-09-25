@@ -1,7 +1,11 @@
-import BloombergAPI_new as BloombergAPI
+import os
+dir_path = os.path.dirname(os.path.realpath(__file__))
+# print (dir_path)
+
+from Util import BloombergAPI_new as BloombergAPI
+# from Util import BloombergAPI_new as BloombergAPI
 import Util.EmailSender as EmailSender
 import pandas as pd
-import numpy as np
 import seaborn as sns
 from datetime import date
 import dateutil.relativedelta
@@ -9,8 +13,6 @@ from scipy import stats
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
-import matplotlib.pyplot as plt
-from matplotlib import colors
 
 heatmap_green_red = sns.diverging_palette(160, 10, n=7,as_cmap=True)
 # sns.palplot(sns.diverging_palette(160, 10, n=7))
@@ -200,8 +202,8 @@ if __name__ == "__main__":
     #creating html for email
     html_string = str(last_n_months) + ' months of data - Vol buying candidates in green, Vol selling candidates in red' + '<br>'+'<br>'+ Implied_Percentiles_final + '<br>'+Implied_minus_Realized_Percentiles_final
     subject = 'FX Vol Baseline for ' + str(EndDate)
-    mail_to = 'mesa@vistacapital.com.br'
-    # mail_to = 'abraga@vistacapital.com.br'
+    # mail_to = 'mesa@vistacapital.com.br'
+    mail_to = 'abraga@vistacapital.com.br'
 
     EmailSender.send_email_simple (mail_to=mail_to,subject=subject,bodymsg='hi',html_body=html_string,attachment=False)
 

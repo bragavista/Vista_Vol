@@ -1,6 +1,5 @@
-import BloombergAPI_new as BloombergAPI
-import pandas as pd
-import numpy as np
+from Util import BloombergAPI_new as BloombergAPI
+
 StartDate = 20200618
 EndDate = 20200718
 x = "IBOV Index"

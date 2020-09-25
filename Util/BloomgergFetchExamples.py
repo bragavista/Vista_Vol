@@ -1,5 +1,4 @@
-import BloombergAPI
-
+from Util import BloombergAPI
 
 blp = BloombergAPI.BLPInterface()
 StartDate = 20200101

@@ -20,10 +20,10 @@ heatmap_green_red = sns.diverging_palette(160, 10, n=7,as_cmap=True)
 
 fx_master_dict = {
                 'Beta EM': ['USDBRL','USDMXN','USDZAR','USDTRY','USDRUB'],
-                'Dev': ['EURUSD','GBPUSD','EURGBP','USDJPY','EURCHF','AUDUSD','USDCAD'],
+                'Dev': ['EURUSD','GBPUSD','EURGBP','USDJPY','EURCHF','USDCHF','AUDUSD','USDCAD'],
                 'Scandies': ['EURNOK','EURSEK','NOKSEK','USDSEK','USDNOK'],
                 'CEEMEA' : ['EURPLN','EURCZK','USDILS'],
-                'Asia EM' : ['USDTWD','USDINR']
+                'Asia EM' : ['USDTWD','USDINR','USDCNH']
             }
 
 maturities_bbg_style = ['1M','3M','6M','1Y']
@@ -202,8 +202,8 @@ if __name__ == "__main__":
     #creating html for email
     html_string = str(last_n_months) + ' months of data - Vol buying candidates in green, Vol selling candidates in red' + '<br>'+'<br>'+ Implied_Percentiles_final + '<br>'+Implied_minus_Realized_Percentiles_final
     subject = 'FX Vol Baseline for ' + str(EndDate)
-    # mail_to = 'mesa@vistacapital.com.br'
-    mail_to = 'abraga@vistacapital.com.br'
+    mail_to = 'mesa@vistacapital.com.br'
+    # mail_to = 'abraga@vistacapital.com.br'
 
     EmailSender.send_email_simple (mail_to=mail_to,subject=subject,bodymsg='hi',html_body=html_string,attachment=False)
 

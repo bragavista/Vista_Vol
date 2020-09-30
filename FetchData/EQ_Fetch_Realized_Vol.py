@@ -1,4 +1,7 @@
-from Util import BloombergAPI_new as BloombergAPI
+try:
+    from Util import BloombergAPI_new as BloombergAPI
+except:
+    import BloombergAPI_new as BloombergAPI
 
 if __name__ == "__main__":
 

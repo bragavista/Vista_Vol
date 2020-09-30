@@ -1,4 +1,7 @@
-from Util import BloombergAPI_new as BloombergAPI
+try:
+    from Util import BloombergAPI_new as BloombergAPI
+except:
+    import Util.BloombergAPI_new as BloombergAPI
 
 
 def Fetch_IV_from_BBG_IVOL_DELTA(AssetList,StartDate,EndDate,Maturity,Delta,Call_Put):

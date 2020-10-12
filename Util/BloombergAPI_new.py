@@ -1,4 +1,7 @@
+
 # -*- coding: utf-8 -*-
+
+#https://github.com/691175002/BLPInterface/issues/3
 """ A wrapper for the Bloomberg API.
 
 Designed to roughly emulate the Excel API.
@@ -143,6 +146,8 @@ try:
                         'adjustmentAbnormal': False,
                         'adjustmentSplit': True,
                         'adjustmentFollowDPDF': False}
+
+
             defaults.update(kwargs)
             usecurities = _uwrap(securities)
             ufields = _uwrap(fields)

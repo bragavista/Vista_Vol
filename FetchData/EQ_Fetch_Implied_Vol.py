@@ -31,8 +31,11 @@ def Fetch_IV_from_BBG_IVOL_DELTA(AssetList,StartDate,EndDate,Maturity,Delta,Call
 
 
 if __name__ == "__main__":
+
     StartDate = 20200618
+
     EndDate = 20200718
+
     x = ["SPX Index","IBOV Index","EEM US Equity"]
     # blp = BloombergAPI.BLPInterface()
     # print(blp.historicalRequest("SPX Index", ["IVOL_DELTA"], StartDate, EndDate))

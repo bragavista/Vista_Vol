@@ -3,6 +3,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 import pandas as pd
 import seaborn as sns
+from scipy import stats
+
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -23,7 +25,6 @@ eq_master_dict = {
 
             }
 
-
 def implied_minus_realized (AssetList,StartDate,EndDate,Maturity,Delta,Call_Put, window):
 
     eq_implied_vols = EQ_Fetch_Implied_Vol.Fetch_IV_from_BBG_IVOL_DELTA(AssetList,StartDate,EndDate,Maturity,Delta,Call_Put)
@@ -42,9 +43,6 @@ def implied_minus_realized (AssetList,StartDate,EndDate,Maturity,Delta,Call_Put,
     # iv_minus_rv = eq_implied_vols - eq_realized_vols
 
     return  iv_minus_rv
-
-
-maturities_bbg_style = ['1M','3M','6M','1Y']
 
 def normalized_skew (AssetList,StartDate,EndDate,Maturity,Delta_Center,Delta_Bull, Delta_Bear, Bear_cp, Center_cp, Bull_cp):
 
@@ -68,6 +66,55 @@ def normalized_skew (AssetList,StartDate,EndDate,Maturity,Delta_Center,Delta_Bul
 
 
     return norm_skew
+
+def fetch_eq_vol_multiple_tenors (AssetList,StartDate,EndDate,Delta,Call_Put):
+
+    certainly_valid_dates = ['30d', '60d', '90d', '180d', '360d', '720d']
+
+    all_eq_implied_vols = dict()
+
+    for mat in certainly_valid_dates:
+
+        eq_implied_vols = EQ_Fetch_Implied_Vol.Fetch_IV_from_BBG_IVOL_DELTA(AssetList,StartDate,EndDate,mat,Delta,Call_Put)
+
+        all_eq_implied_vols[mat] = eq_implied_vols
+
+
+
+    return all_eq_implied_vols
+
+def treat_iv_to_percentile (all_eq_implied_vols,window):
+
+    Implied_Percentiles = pd.DataFrame()
+
+    Implied_Percentiles_eqvol = pd.DataFrame()
+
+    for mat in all_eq_implied_vols.keys():
+
+        time_series = all_eq_implied_vols[mat]
+
+        for asset in time_series:
+
+            time_series_perasset = time_series[asset]
+            last_value = round(time_series_perasset.tail(1)[0],1)
+            last_percentile = round(stats.percentileofscore(time_series, last_value),0)
+            aux = pd.DataFrame(index=[asset[0]],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
+################ TODO HERE
+            stopper here
+            Implied_Percentiles_eq = pd.concat([Implied_Percentiles_fxpair,aux],axis=1,sort=True)
+            Implied_Percentiles = Implied_Percentiles.append(Implied_Percentiles_fxpair)
+
+
+
+
+    region_aux = pd.DataFrame(data=[fx_to_region(fx_pair,fx_master_dict) for fx_pair in Implied_Percentiles.index],columns=['Region'],index=Implied_Percentiles.index)
+    Implied_Percentiles = pd.concat([region_aux,Implied_Percentiles],axis=1,sort=False)
+    Implied_Percentiles = Implied_Percentiles.rename_axis('Implieds')
+
+
+
+
+    return
 
 
 def treat_raw_data_iv_minus_rv_pctle (implied_dict,real_dict,raw_data):
@@ -112,7 +159,6 @@ def treat_raw_data_iv_minus_rv_pctle (implied_dict,real_dict,raw_data):
     Implied_minus_Realized_Percentiles = Implied_minus_Realized_Percentiles.rename_axis('Implied - Real')
 
     return Implied_minus_Realized_Percentiles
-
 
 
 if __name__ == "__main__":

@@ -213,7 +213,8 @@ try:
                     fieldDataList = [fieldData.getElement(i) for i in range(fieldData.numElements())]
 
                     for fld in fieldDataList:
-                        data.ix[sec.getElementAsString('security'), str(fld.name())] = fld.getValue()
+                        # data.ix[sec.getElementAsString('security'), str(fld.name())] = fld.getValue()
+                        data.loc[sec.getElementAsString('security'), str(fld.name())] = fld.getValue()
 
             if data.empty:
                 return DataFrame()

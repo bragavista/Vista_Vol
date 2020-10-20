@@ -92,6 +92,10 @@ def do_all_related_stocks (RelatedStockList,reportingccy, pace):
         LiquidationStock = LiquidationStock.append(liquidation_volume_last)
 
 
+
+    LiquidationStock = LiquidationStock.sort_values(by=['Filing Date  ','position_BRL'],ascending=[False,True])
+
+
     return LiquidationStock
 
 

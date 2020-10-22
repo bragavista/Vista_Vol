@@ -144,7 +144,7 @@ def do_all_stocks (target_stock_dict,pace=-0.1):
         total_aux = pd.DataFrame(data=[Potential_Selling_Stock],index=[stock],columns=['PotentialLiquidation_' + reportingccy + '_mm'])
 
         all_target_stocks = all_target_stocks.append([LiquidationStock,total_aux])
-        all_target_stocks = all_target_stocks.fillna('')
+        # all_target_stocks = all_target_stocks.fillna('')
 
         all_selling_stock = all_selling_stock.append(total_aux)
 
@@ -157,8 +157,7 @@ def do_all_stocks (target_stock_dict,pace=-0.1):
 
 def recent_activity_calc(all_target_stocks,cutdate):
 
-    recent_activity = all_target_stocks.loc[all_target_stocks['Filing Date  ']>=cutdate]
-
+    recent_activity = all_target_stocks.loc[all_target_stocks['Filing Date  '] >= cutdate]
 
 
     recent_activity = recent_activity[['Filing Date  ','StockGroup','StockTicker','volume_in_reportingccy_mm','Holder Name ','Position ','Position Change  ','position_change_pct','reportingccy']]
@@ -187,9 +186,6 @@ if __name__ == "__main__":
     all_target_stocks,all_selling_stock = do_all_stocks(target_stock_dict, pace=-0.1)
 
     recent_activity = recent_activity_calc(all_target_stocks, cutdate)
-
-
-
 
 
 

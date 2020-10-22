@@ -212,6 +212,7 @@ if __name__ == "__main__":
     # mail_to = 'analise@vistacapital.com.br'
     mail_to = 'abraga@vistacapital.com.br'
 
+
     EmailSender.send_email_simple (mail_to=mail_to,subject=subject,bodymsg='hi',html_body=html_string,attachment=False)
 
 

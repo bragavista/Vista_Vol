@@ -139,6 +139,7 @@ def do_all_stocks (target_stock_dict,pace=-0.1):
         total_aux = pd.DataFrame(data=[Potential_Selling_Stock],index=[stock],columns=['PotentialLiquidation_' + reportingccy + '_mm'])
 
         all_target_stocks = all_target_stocks.append([LiquidationStock,total_aux])
+        all_target_stocks = all_target_stocks.fillna('')
 
         all_selling_stock = all_selling_stock.append(total_aux)
 
@@ -182,6 +183,12 @@ if __name__ == "__main__":
 
     recent_activity = recent_activity_calc(all_target_stocks, cutdate)
 
+
+
+
+
+
+
     print(recent_activity)
     print(all_selling_stock)
     print(all_target_stocks)
@@ -196,8 +203,8 @@ if __name__ == "__main__":
 
     html_string = html_string1 + html_string2 + html_string3
 
-    subject = 'Large Equity Liquidations ' + str(cutdate)
-    # mail_to = 'mesa@vistacapital.com.br'
+    subject = str(cutdate) + ' - Large Equity Liquidations - ' + str(list(target_stock_dict.keys()))
+    # mail_to = 'analise@vistacapital.com.br'
     mail_to = 'abraga@vistacapital.com.br'
 
     EmailSender.send_email_simple (mail_to=mail_to,subject=subject,bodymsg='hi',html_body=html_string,attachment=False)

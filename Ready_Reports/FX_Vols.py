@@ -1,17 +1,36 @@
+# from importlib import import_module
+# BloombergAPI = import_module("Util.BloombergAPI")
+import time
+print('starting things here')
 import os
-dir_path = os.path.dirname(os.path.realpath(__file__))
-# print (dir_path)
+import sys
+sys.path.append('C:\\Users\\ArthurBraga\\PycharmProjects\\')
+sys.path.append('C:\\Users\\ArthurBraga\\PycharmProjects\\Vista\\')
+sys.path.append('C:\\Users\\ArthurBraga\\PycharmProjects\\Vista\\Util\\')
 
-from Util import BloombergAPI_new as BloombergAPI
-from Util import QuantMetrics as QuantMetrics
+# import Util.BloombergAPI_new as BloombergAPI
+# import Util.QuantMetrics as QuantMetrics
+# import Util.EmailSender as EmailSender
+try:
+    import Util
+    from Util import BloombergAPI_new as BloombergAPI
+    from Util import QuantMetrics as QuantMetrics
+    from Util import EmailSender as EmailSender
+    print('try worked')
 
-# from Util import BloombergAPI_new as BloombergAPI
-import Util.EmailSender as EmailSender
+except:
+    import Util.BloombergAPI_new as BloombergAPI
+    import Util.QuantMetrics as QuantMetrics
+    import Util.EmailSender as EmailSender
+
+time.sleep(5)
+
+
 import pandas as pd
 import seaborn as sns
 from datetime import date
 import dateutil.relativedelta
-from scipy import stats
+
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
@@ -76,8 +95,6 @@ if __name__ == "__main__":
     print(Implied_minus_Realized_Percentiles)
 
     #formatting dfs
-
-
     subset_heatmap = list()
     for column in Implied_minus_Realized_Percentiles.columns:
         if "pctle" in column:
@@ -85,7 +102,6 @@ if __name__ == "__main__":
 
     pre_render = Implied_minus_Realized_Percentiles.style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).set_precision(1).set_properties(**{'text-align': 'center'})
     Implied_minus_Realized_Percentiles_final = pre_render.render()
-
 
     subset_heatmap = list()
     for column in Implied_Percentiles.columns:

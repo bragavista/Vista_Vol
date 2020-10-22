@@ -1,3 +1,8 @@
+import sys
+sys.path.append('C:\\Users\\ArthurBraga\\PycharmProjects\\')
+sys.path.append('C:\\Users\\ArthurBraga\\PycharmProjects\\Vista\\')
+sys.path.append('C:\\Users\\ArthurBraga\\PycharmProjects\\Vista\\Util\\')
+
 try:
     from Util import BloombergAPI_new as BloombergAPI
     from Util import random_functions as random_functions

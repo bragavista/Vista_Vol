@@ -198,15 +198,15 @@ if __name__ == "__main__":
     #creating html for email
     html_string1 = 'Most Recent Position Liquidation Reported for ' + str(list(target_stock_dict.keys())) +  recent_activity.to_html() + '<br>'+ '<br>'
 
-    html_string2 = 'Full Liquidation Volume for Holders who have been cutting at least ' + str(pace) + 'of position'   + all_selling_stock.to_html() + '<br>'+ '<br>'
+    html_string2 = 'Full Liquidation Volume for Holders who have been cutting at least ' + str(100*pace) + '% of position'   + all_selling_stock.to_html() + '<br>'+ '<br>'
 
-    html_string3 = 'Liquidation Volume per Holder who have been cutting at least '+ str(pace) + 'of position' + all_target_stocks.to_html() + '<br>'+ '<br>'
+    html_string3 = 'Liquidation Volume per Holder who have been cutting at least '+ str(100*pace) + '% of position' + all_target_stocks.to_html() + '<br>'+ '<br>'
 
     html_string = html_string1 + html_string2 + html_string3
 
     subject = str(cutdate) + ' - Large Equity Liquidations - ' + str(list(target_stock_dict.keys()))
-    # mail_to = 'analise@vistacapital.com.br'
-    mail_to = 'abraga@vistacapital.com.br'
+    mail_to = 'analise@vistacapital.com.br'
+    # mail_to = 'abraga@vistacapital.com.br'
 
 
     EmailSender.send_email_simple (mail_to=mail_to,subject=subject,bodymsg='hi',html_body=html_string,attachment=False)

@@ -2,7 +2,7 @@ try:
     from Util import BloombergAPI_new as BloombergAPI
 except:
     import Util.BloombergAPI_new as BloombergAPI
-
+import pandas as pd
 def pull_price_history (AssetList,StartDate,EndDate, CshAdjNormal=False):
 
     #
@@ -23,9 +23,10 @@ def pull_price_history (AssetList,StartDate,EndDate, CshAdjNormal=False):
 
 
     blp = BloombergAPI.BLPInterface()
-    # prices = blp.historicalRequest(AssetList, ["PX_LAST"], StartDate, EndDate,adjustmentSplit=True)
+
     prices = blp.historicalRequest(AssetList, ["PX_LAST"], StartDate, EndDate, CshAdjNormal=CshAdjNormal,adjustmentSplit=True)
-    # prices = blp.historicalRequest(AssetList, ["PX_LAST"], StartDate, EndDate)
+    prices.index = prices.index.date
+
     blp.close()
 
 
@@ -35,8 +36,12 @@ def pull_price_history (AssetList,StartDate,EndDate, CshAdjNormal=False):
 
 if __name__ == "__main__":
 
-    StartDate = 20150615
-    EndDate = 20201009
-    x = ["MCD US Equity"]
+    StartDate = 20110101
+    EndDate = 20201027
+    x = ["CDX HY CDSI GEN 5Y PRC Corp"]
     prices = pull_price_history(AssetList=x,StartDate=StartDate,EndDate=EndDate)
+    prices.columns = ['PX_LAST']
+    prices_daily = prices.pct_change()
+    maxday = prices_daily.max()[0]
+    prices_daily.loc[prices_daily['PX_LAST']==maxday]
     print(prices)

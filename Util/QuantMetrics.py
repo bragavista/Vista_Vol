@@ -14,17 +14,24 @@ fx_master_dict = {
             }
 
 
-def fx_to_region(fx_pair,fx_master_dict):
+eq_master_dict = {
+                'EM Local': ['IBOV Index','HSCEI Index','KOSPI Index'],
+                'EM ETF': ['EEM US Equity', 'EWZ US Equity', 'FXI US Equity','EWW US Equity'],
+                'US': ['SPX Index','NDX Index','RTY Index'],
+                'DM ': ['SX5E Index','NKY Index'],
+            }
+
+
+def asset_to_region(asset,master_dict):
 
     region_final ='no_region_mapped'
 
-    for region in fx_master_dict.keys():
+    for region in master_dict.keys():
 
-        if fx_pair in fx_master_dict[region]:
+        if asset in master_dict[region]:
             region_final = region
 
     return region_final
-
 
 def corr_matrix_from_prices (PricesDataframe):
 
@@ -86,7 +93,7 @@ def treat_raw_data_iv_pctle (implied_dict,raw_data):
 
 
 
-    region_aux = pd.DataFrame(data=[fx_to_region(fx_pair,fx_master_dict) for fx_pair in Implied_Percentiles.index],columns=['Region'],index=Implied_Percentiles.index)
+    region_aux = pd.DataFrame(data=[asset_to_region(fx_pair,fx_master_dict) for fx_pair in Implied_Percentiles.index],columns=['Region'],index=Implied_Percentiles.index)
     Implied_Percentiles = pd.concat([region_aux,Implied_Percentiles],axis=1,sort=False)
     Implied_Percentiles = Implied_Percentiles.rename_axis('Implieds')
 
@@ -129,7 +136,7 @@ def treat_raw_data_iv_minus_rv_pctle (implied_dict,real_dict,raw_data):
 
         Implied_minus_Realized_Percentiles = Implied_minus_Realized_Percentiles.append(Implied_Percentiles_iv_rv)
 
-    region_aux = pd.DataFrame(data=[fx_to_region(fx_pair,fx_master_dict) for fx_pair in Implied_minus_Realized_Percentiles.index],columns=['Region'],index=Implied_minus_Realized_Percentiles.index)
+    region_aux = pd.DataFrame(data=[asset_to_region(fx_pair,fx_master_dict) for fx_pair in Implied_minus_Realized_Percentiles.index],columns=['Region'],index=Implied_minus_Realized_Percentiles.index)
 
 
     Implied_minus_Realized_Percentiles = pd.concat([region_aux,Implied_minus_Realized_Percentiles],axis=1,sort=False)

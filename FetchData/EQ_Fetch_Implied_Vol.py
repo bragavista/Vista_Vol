@@ -22,6 +22,9 @@ def Fetch_IV_from_BBG_IVOL_DELTA(AssetList,StartDate,EndDate,Maturity,Delta,Call
 
     blp = BloombergAPI.BLPInterface()
     final_iv = blp.historicalRequest(AssetList, ["IVOL_DELTA"], StartDate, EndDate, overrides=overrides_final)
+
+    final_iv.index = final_iv.index.date
+
     blp.close()
 
     return final_iv

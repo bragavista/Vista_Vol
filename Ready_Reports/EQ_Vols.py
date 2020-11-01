@@ -308,6 +308,12 @@ if __name__ == "__main__":
     print('stop 3')
 
 
+    #IVRV percentle
+    #skew
+    #skew percentile
+    #regressions
+
+
 
     #
     # all_real_vols = fe

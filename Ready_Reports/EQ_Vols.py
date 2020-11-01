@@ -71,6 +71,39 @@ def implied_minus_realized_dfdatasource (AssetList,all_eq_implied_vols,all_eq_hi
 
     return  iv_minus_rv_final
 
+
+def implied_minus_realized_dfdatasource_mindex (AssetList,all_eq_implied_vols,all_eq_hist_vols,Implied_Real_Term_mapping = {'30d':  22, '60d':  44,'90d':  66,'180d': 126,'360d': 252,'720d': 504}):
+
+    iv_minus_rv_final = pd.DataFrame()
+
+    for asset in AssetList:
+        iv_minus_rv = pd.DataFrame()
+
+        for imp_real_pair in Implied_Real_Term_mapping.keys():
+            tenor = imp_real_pair
+            real_wdw = Implied_Real_Term_mapping[tenor]
+
+            imp =  all_eq_implied_vols[asset]['ivol'][tenor]
+            imp_aux = imp.copy()
+            imp_aux.columns = ['aux']
+
+            real = all_eq_hist_vols[asset]['rvol'][real_wdw]
+            real_aux = real.copy().to_frame()
+            real_aux.columns = ['aux']
+
+            aux = imp_aux-real_aux
+
+            new_columns = pd.MultiIndex.from_arrays([[asset],['iv-rv'],[tenor],[Delta],[Call_Put],[real_wdw]],names=('Asset','iv-rv','mat','delta','call_put','real_wdw'))
+            aux.columns = new_columns
+
+            iv_minus_rv = pd.concat([iv_minus_rv,aux],sort=True,axis=1)
+
+        iv_minus_rv_final = pd.concat([iv_minus_rv_final, iv_minus_rv], sort=True, axis=1)
+
+    return  iv_minus_rv_final
+
+
+
 def normalized_skew (AssetList,StartDate,EndDate,Maturity,Delta_Center,Delta_Bull, Delta_Bear, Bear_cp, Center_cp, Bull_cp):
 
     bull_vols = EQ_Fetch_Implied_Vol.Fetch_IV_from_BBG_IVOL_DELTA(AssetList,StartDate,EndDate,Maturity,Delta_Bull,Bull_cp)
@@ -96,16 +129,71 @@ def normalized_skew (AssetList,StartDate,EndDate,Maturity,Delta_Center,Delta_Bul
 
 def fetch_eq_imp_vol_multiple_tenors (AssetList,StartDate,EndDate,Delta,Call_Put, Implied_Tenors=['30d', '60d', '90d', '180d', '360d', '720d']):
 
-
     all_eq_implied_vols = dict()
+    all_eq_implied_vols_multindex = pd.DataFrame()
 
     for mat in Implied_Tenors:
 
         eq_implied_vols = EQ_Fetch_Implied_Vol.Fetch_IV_from_BBG_IVOL_DELTA(AssetList,StartDate,EndDate,mat,Delta,Call_Put)
+        eq_implied_vols.columns = [element[0] for element in eq_implied_vols.columns]
+
+        for asset in eq_implied_vols.columns:
+
+
+            data = eq_implied_vols[asset].copy().to_frame()
+            new_columns = pd.MultiIndex.from_arrays([[asset], ['ivol'], [mat],[Delta], [Call_Put]],
+                                                names=('Asset', 'ivol', 'mat', 'delta','call_put'))
+            data.columns = new_columns
+            all_eq_implied_vols_multindex = pd.concat([all_eq_implied_vols_multindex,data],sort=True,axis=1)
+
 
         all_eq_implied_vols[mat] = eq_implied_vols
 
-    return all_eq_implied_vols
+    return all_eq_implied_vols,all_eq_implied_vols_multindex
+
+def fetch_eq_imp_vol_multiple_tenors_mindex (AssetList,StartDate,EndDate,Delta,Call_Put, Implied_Tenors=['30d', '60d', '90d', '180d', '360d', '720d']):
+
+    all_eq_implied_vols = dict()
+    all_eq_implied_vols_multindex = pd.DataFrame()
+
+    for mat in Implied_Tenors:
+
+        eq_implied_vols = EQ_Fetch_Implied_Vol.Fetch_IV_from_BBG_IVOL_DELTA(AssetList,StartDate,EndDate,mat,Delta,Call_Put)
+        eq_implied_vols.columns = [element[0] for element in eq_implied_vols.columns]
+
+        for asset in eq_implied_vols.columns:
+            data = eq_implied_vols[asset].copy().to_frame()
+            new_columns = pd.MultiIndex.from_arrays([[asset], ['ivol'], [mat],[Delta], [Call_Put]],
+                                                names=('Asset', 'ivol', 'mat', 'delta','call_put'))
+            data.columns = new_columns
+            all_eq_implied_vols_multindex = pd.concat([all_eq_implied_vols_multindex,data],sort=True,axis=1)
+
+
+        all_eq_implied_vols[mat] = eq_implied_vols
+
+    return all_eq_implied_vols_multindex
+
+
+
+def fetch_eq_hist_vol_multiple_tenors_mindex (AssetList,StartDate,EndDate,realized_windows=[22,44]):
+
+
+    all_hist_implied_vols_multindex = pd.DataFrame()
+
+    for window in realized_windows:
+
+        eq_realized_vols = 100 * EQ_Fetch_Realized_Vol.eq_realized_vols(AssetList, StartDate, EndDate, window)
+        eq_realized_vols.columns = [element[0] for element in eq_realized_vols.columns]
+
+
+        for asset in eq_realized_vols.columns:
+            data = eq_realized_vols[asset].copy().to_frame()
+            new_columns = pd.MultiIndex.from_arrays([[asset], ['rvol'], [window]],
+                                                names=('Asset', 'rvol', 'window'))
+            data.columns = new_columns
+            all_hist_implied_vols_multindex = pd.concat([all_hist_implied_vols_multindex,data],sort=True,axis=1)
+
+    return all_hist_implied_vols_multindex
 
 def fetch_eq_hist_vol_multiple_tenors (AssetList,StartDate,EndDate,realized_windows=[22,44]):
 
@@ -119,10 +207,6 @@ def fetch_eq_hist_vol_multiple_tenors (AssetList,StartDate,EndDate,realized_wind
         all_hist_implied_vols[window] = eq_realized_vols
 
     return all_hist_implied_vols
-
-
-
-
 
 def treat_iv_to_percentile (all_eq_implied_vols,window=252):
 
@@ -155,54 +239,40 @@ def treat_iv_to_percentile (all_eq_implied_vols,window=252):
     return Implied_Percentiles_eqvol
 
 
-def treat_raw_data_iv_minus_rv_pctle (all_eq_implied_vols,real_dict,raw_data):
+def treat_iv_to_percentile_multindex (all_eq_implied_vols,window=60):
 
-    Implied_minus_Realized_Percentiles = pd.DataFrame()
+    Implied_Percentiles_eqvol = pd.DataFrame()
 
-    Implied_Vols_list = list()
-    Real_vols_list = list()
+    for iv_ts in all_eq_implied_vols:
+
+        time_series = all_eq_implied_vols[iv_ts].copy().to_frame()
+        time_series.columns.names = all_eq_implied_vols.columns.names
+        # x = time_series
+        pctrank = lambda x: pd.Series(x).rank(pct=True).iloc[-1]
+        rollingrank = time_series.rolling(window=window).apply(pctrank)
+
+        newcolumnnames = [[x] if x != 'ivol' else ['ivol-pctle'] for x in list(time_series.columns[0])]
+        newnames = tuple([x if x != 'ivol' else 'ivol-pctle' for x in  list(time_series.columns.names)])
+        rollingrank.columns = pd.MultiIndex.from_arrays(newcolumnnames,names=newnames)
+
+        Implied_Percentiles_eqvol = pd.concat([Implied_Percentiles_eqvol,rollingrank],sort=True,axis=1)
 
 
-    for fx_pair in implied_dict:
-        for mat in implied_dict[fx_pair]:
-            Implied_Vols_list.append(implied_dict[fx_pair][mat])
-            Real_vols_list.append(real_dict[fx_pair][mat])
-
-    all_implied_vol_time_series = raw_data[Implied_Vols_list]
-    all_realized_vol_time_series = raw_data[Real_vols_list]
+    return Implied_Percentiles_eqvol
 
 
-    for fx_pair in implied_dict.keys():
 
-        list_of_mats = list(implied_dict[fx_pair].keys())
+def treat_raw_data_iv_minus_rv_pctle (all_eq_iv_minus_rv):
+    list_of_assets = all_eq_iv_minus_rv
 
-        Implied_Percentiles_iv_rv = pd.DataFrame()
 
-        for mat in list_of_mats:
-            time_series_iv = all_implied_vol_time_series[implied_dict[fx_pair][mat]]
-            time_series_rv = all_realized_vol_time_series[real_dict[fx_pair][mat]]
-            iv_rv_diff = time_series_iv - time_series_rv
-
-            last_value = round(iv_rv_diff.tail(1)[0],1)
-            last_percentile = round(stats.percentileofscore(iv_rv_diff, last_value),0)
-
-            aux = pd.DataFrame(index=[fx_pair],columns=[mat+' last',mat+' pctle'],data=[[last_value,last_percentile]])
-            Implied_Percentiles_iv_rv = pd.concat([Implied_Percentiles_iv_rv,aux],axis=1,sort=True)
-
-        Implied_minus_Realized_Percentiles = Implied_minus_Realized_Percentiles.append(Implied_Percentiles_iv_rv)
-
-    region_aux = pd.DataFrame(data=[QuantMetrics.asset_to_region(fx_pair) for fx_pair in Implied_Percentiles.index],columns=['Region'],index=Implied_Percentiles.index)
-    Implied_minus_Realized_Percentiles = pd.concat([region_aux,Implied_minus_Realized_Percentiles],axis=1,sort=False)
-
-    Implied_minus_Realized_Percentiles = Implied_minus_Realized_Percentiles.rename_axis('Implied - Real')
-
-    return Implied_minus_Realized_Percentiles
+    return 1
 
 
 if __name__ == "__main__":
 
     AssetList = ['IBOV Index', 'SPX Index','SX5E Index']
-    StartDate = 20200101
+    StartDate = 20180101
     EndDate = 20201009
     Maturity = '30d'
     window = 22
@@ -227,18 +297,15 @@ if __name__ == "__main__":
     }
 
 
-    all_eq_implied_vols = fetch_eq_imp_vol_multiple_tenors(AssetList, StartDate, EndDate, Delta, Call_Put,Implied_Tenors=['30d', '60d', '90d', '180d', '360d', '720d'])
+    all_eq_implied_vols = fetch_eq_imp_vol_multiple_tenors_mindex(AssetList, StartDate, EndDate, Delta, Call_Put,Implied_Tenors=['30d', '60d', '90d', '180d', '360d', '720d'])
+    all_eq_implied_vols_pctle = treat_iv_to_percentile_multindex(all_eq_implied_vols, window=252)
+    print('stop 1')
 
-    all_eq_hist_vols = fetch_eq_hist_vol_multiple_tenors (AssetList,StartDate,EndDate, realized_windows = [22, 44, 66, 126, 252, 504])
+    all_eq_hist_vols = fetch_eq_hist_vol_multiple_tenors_mindex (AssetList,StartDate,EndDate, realized_windows = [22, 44, 66, 126, 252, 504])
+    print('stop 2')
 
-
-    all_eq_iv_minus_rv = implied_minus_realized_dfdatasource(AssetList, all_eq_implied_vols,all_eq_hist_vols,StartDate,
-                                        Implied_Real_Term_mapping={'30d': 22, '60d': 44, '90d': 66, '180d': 126,
-                                                                   '360d': 252, '720d': 504})
-
-    iv_minus_rv = implied_minus_realized(AssetList, StartDate, EndDate, Maturity, Delta, Call_Put, window)
-
-    iv_minus_rv2 = implied_minus_realized_dfdatasource(AssetList, StartDate, EndDate, Maturity,Implied_Real_Term_mapping )
+    all_eq_iv_minus_rv = implied_minus_realized_dfdatasource_mindex(AssetList, all_eq_implied_vols,all_eq_hist_vols,Implied_Real_Term_mapping={'30d': 22, '60d': 44, '90d': 66, '180d': 126, '360d': 252, '720d': 504})
+    print('stop 3')
 
 
 

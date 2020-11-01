@@ -365,12 +365,9 @@ if __name__ == "__main__":
     Implied_Percentiles_iv_minus_rv = treat_iv_minus_rv_to_percentile_multindex(all_eq_iv_minus_rv, pctle_window=252)
     print('stop 3')
 
-    normskew = normalized_skew(AssetList, StartDate, EndDate, Maturity, Delta_Center, Delta_Bull, Delta_Bear, Bear_cp, Center_cp,
-                    Bull_cp)
+    normskew = normalized_skew(AssetList, StartDate, EndDate, Maturity, Delta_Center, Delta_Bull, Delta_Bear, Bear_cp, Center_cp,Bull_cp)
 
 
-    #IVRV percentle
-    #skew
     #skew percentile
     #regressions
 

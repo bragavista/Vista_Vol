@@ -1,14 +1,54 @@
-from Util import BloombergAPI_new as BloombergAPI
+try:
+    import Util
+    from Util import BloombergAPI_new as BloombergAPI
+    from Util import QuantMetrics as QuantMetrics
+    from Util import EmailSender as EmailSender
+    from FetchData import EQ_FetchHistoricalPrices
+    print('try worked')
 
+except:
+    import Util.BloombergAPI_new as BloombergAPI
+    import Util.QuantMetrics as QuantMetrics
+    import Util.EmailSender as EmailSender
+    import FetchData.EQ_FetchHistoricalPrices as EQ_FetchHistoricalPrices
+
+import numpy as np
 StartDate = 20200618
 EndDate = 20200718
-x = "IBOV Index"
+y = "VIX Index"
+x = "SPX Index"
 
-blp = BloombergAPI.BLPInterface()
-print(blp.historicalRequest("SPX Index", ["IVOL_DELTA"], StartDate, EndDate))
-print(blp.historicalRequest("SPX Index", ["IVOL_DELTA"], StartDate, EndDate,overrides={"IVOL_MATURITY":"maturity_90d"}))
-print(blp.historicalRequest("SPX Index", ["IVOL_DELTA"], StartDate, EndDate,overrides={"IVOL_MATURITY":"maturity_30d"}))
-blp.close()
+RegressionDict_bbg = {  'vix_spx' :
+                                {'y' : "VIX Index", 'x' : "SPX Index"},
+                    'credit_hy_SPX':
+                                {'y' : "CDX HY CDSI GEN 5Y PRC Index", 'x' : "SPX Index"},
+                    'credit_ig_SPX':
+                                {'y' : "CDX IG CDSI GEN 5Y SPRD Index", 'x' : "SPX Index"},
+                    'vix_credit_hy':
+                                {'y' : "VIX Index", 'x' : "CDX HY CDSI GEN 5Y PRC Index"}
+                    }
+
+all_assets = list()
+for item in RegressionDict_bbg.keys():
+    print(item)
+    for subitem in RegressionDict_bbg[item]:
+        all_assets.append(RegressionDict_bbg[item][subitem])
+all_assets = list(np.unique(all_assets))
+
+all_history = EQ_FetchHistoricalPrices.pull_price_history (all_assets,StartDate,EndDate, CshAdjNormal=False)
+
+
+
+
+
+
+
+
+
+
+
+
+
 # print(y)
 #
 #

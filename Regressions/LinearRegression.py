@@ -13,7 +13,32 @@ except:
     import FetchData.EQ_FetchHistoricalPrices as EQ_FetchHistoricalPrices
 
 
+class LinearRegression():
+    ''' Class that implemnets Simple Linear Regression '''
+
+    def __init__(self):
+        self.b0 = 0
+        self.b1 = 0
+
+    def fit(self, X, y):
+        mean_x = np.mean(X)
+        mean_y = np.mean(y)
+
+        SSxy = np.sum(np.multiply(X, y)) - len(x) * mean_x * mean_y
+        SSxx = np.sum(np.multiply(X, x)) - len(x) * mean_x * mean_x
+
+        self.b1 = SSxy / SSxx
+        self.b0 = mean_y - self.b1 * mean_x
+
+    def predict(self, input_data):
+        return self.b0 + self.b1 * input_data
+
+import matplotlib.pyplot as plt
+
 import tensorflow.compat.v2.feature_column as fc
+
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 import tensorflow as tf
 
@@ -42,13 +67,13 @@ for item in RegressionDict_bbg.keys():
 
 all_assets = list(np.unique(all_assets))
 AllPrices = EQ_FetchHistoricalPrices.pull_price_history(all_assets,StartDate=StartDate,EndDate=EndDate)
-
+AllPrices.columns = [element[0] for element in AllPrices.columns]
 
 
 for item in RegressionDict_bbg.keys():
     print(item)
-    x = AllPrices[RegressionDict_bbg[item]['x']]
-    y = AllPrices[RegressionDict_bbg[item]['x']]
+    x = AllPrices[RegressionDict_bbg[item]['x']].array
+    y = AllPrices[RegressionDict_bbg[item]['y']].array
     n = len(x)
 
     X = tf.placeholder("float")
@@ -98,7 +123,10 @@ for item in RegressionDict_bbg.keys():
 
 
 
-dftrain = pd.read_csv('https://storage.googleapis.com/tf-datasets/titanic/train.csv')
-dfeval = pd.read_csv('https://storage.googleapis.com/tf-datasets/titanic/eval.csv')
-y_train = dftrain.pop('survived')
-y_eval = dfeval.pop('survived')
+
+model = LinearRegression()
+model.fit(x, y)
+predictions = model.predict(x)
+plt.scatter(x = x, y = y, color='orange')
+plt.plot(predictions, color='orange')
+plt.show()

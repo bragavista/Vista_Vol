@@ -1,9 +1,12 @@
 import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
+import Util.EmailSender as EmailSender
 import pandas as pd
 import seaborn as sns
 from scipy import stats
+import io
+import smtplib
+import win32com.client as win32
 
 
 pd.set_option('display.max_rows', 500)
@@ -14,6 +17,7 @@ heatmap_green_red = sns.diverging_palette(160, 10, n=7,as_cmap=True)
 from FetchData import EQ_Fetch_Implied_Vol
 from FetchData import EQ_Fetch_Realized_Vol
 from Util import QuantMetrics
+from matplotlib import pyplot as plt
 
 
 def implied_minus_realized (AssetPairList,StartDate,EndDate,Maturity,Delta,Call_Put, window):
@@ -329,6 +333,7 @@ def treat_iv_minus_rv_to_percentile_multindex (all_eq_iv_minus_rv,pctle_window=2
 
     return Implied_Percentiles_iv_minus_rv
 
+
 if __name__ == "__main__":
 
     AssetList = ['IBOV Index', 'SPX Index','SX5E Index']
@@ -355,38 +360,50 @@ if __name__ == "__main__":
 
 
     all_eq_implied_vols = fetch_eq_imp_vol_multiple_tenors_mindex(AssetList, StartDate, EndDate, Delta, Call_Put,Implied_Tenors=['30d', '60d', '90d', '180d', '360d', '720d'])
+    print(all_eq_implied_vols)
+
     all_eq_implied_vols_pctle = treat_iv_to_percentile_multindex(all_eq_implied_vols, pctle_window=252)
-    print('stop 1')
+    print(all_eq_implied_vols_pctle)
 
     all_eq_hist_vols = fetch_eq_hist_vol_multiple_tenors_mindex (AssetList,StartDate,EndDate, realized_windows = [22, 44, 66, 126, 252, 504])
-    print('stop 2')
+    print(all_eq_hist_vols)
 
     all_eq_iv_minus_rv = implied_minus_realized_dfdatasource_mindex(AssetList, all_eq_implied_vols,all_eq_hist_vols,Implied_Real_Term_mapping={'30d': 22, '60d': 44, '90d': 66, '180d': 126, '360d': 252, '720d': 504})
+    print(all_eq_iv_minus_rv)
+
     Implied_Percentiles_iv_minus_rv = treat_iv_minus_rv_to_percentile_multindex(all_eq_iv_minus_rv, pctle_window=252)
-    print('stop 3')
+    print(Implied_Percentiles_iv_minus_rv)
 
     normskew = normalized_skew(AssetList, StartDate, EndDate, Maturity, Delta_Center, Delta_Bull, Delta_Bear, Bear_cp, Center_cp,Bull_cp)
+    print(normskew)
 
 
-    #skew percentile
-    #regressions
+    #prepping graph
+    img_format = 'png'
+    all_eq_implied_vols.plot()
+    f = io.BytesIO()
+    filename = "C:\\Users\\ArthurBraga\\PycharmProjects\\Vista\\dump\\file_delete.png"
+    plt.savefig(filename)
+    f.seek(0)
+    img_data = f.read()
+    plt.close()
 
 
+    # #formatting another DF
+    # subset_heatmap = list()
+    # for column in Implied_Percentiles.columns:
+    #     if "pctle" in column:
+    #         subset_heatmap.append(column)
+    #
+    # pre_render2 = Implied_Percentiles.style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).set_precision(1).set_properties(**{'text-align': 'center'})
+    # Implied_Percentiles_final = pre_render2.render()
+    #
 
-    #
-    # all_real_vols = fe
-    #
-    # eq_implied_vol_percentiles = treat_iv_to_percentile(all_eq_implied_vols,window=252)
-    #
-    #
-    # print(eq_implied_vol_percentiles)
+    #creating html for email
+    html_string = all_eq_implied_vols.to_html()
+    subject = 'EQ Vol Baseline for ' + str(EndDate)
+    # mail_to = 'mesa@vistacapital.com.br'
+    mail_to = 'abraga@vistacapital.com.br'
 
-    # eq_implied_vols = EQ_Fetch_Implied_Vol.Fetch_IV_from_BBG_IVOL_DELTA(AssetList,StartDate,EndDate,Maturity,Delta,Call_Put)
-    # print(eq_implied_vols)
-    #
-    # iv_minus_rv = implied_minus_realized(AssetList, StartDate, EndDate, Maturity, Delta, Call_Put, window)
-    # print(iv_minus_rv)
-    #
-    # norm_skew = normalized_skew(AssetList, StartDate, EndDate, Maturity, Delta_Center, Delta_Bull, Delta_Bear, Bear_cp, Center_cp, Bull_cp)
-    #
-    # print (norm_skew)
+    EmailSender.send_email_embed_img(mail_to=mail_to, sender=mail_to, subject=subject, html_body='', image_path=filename)
+    os.remove(filename)

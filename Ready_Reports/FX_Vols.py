@@ -103,6 +103,7 @@ if __name__ == "__main__":
     pre_render = Implied_minus_Realized_Percentiles.style.background_gradient(cmap=heatmap_green_red,subset=subset_heatmap).set_precision(1).set_properties(**{'text-align': 'center'})
     Implied_minus_Realized_Percentiles_final = pre_render.render()
 
+    #formatting another DF
     subset_heatmap = list()
     for column in Implied_Percentiles.columns:
         if "pctle" in column:

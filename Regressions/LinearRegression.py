@@ -12,7 +12,13 @@ except:
     import Util.EmailSender as EmailSender
     import FetchData.EQ_FetchHistoricalPrices as EQ_FetchHistoricalPrices
 
+
+import tensorflow.compat.v2.feature_column as fc
+
+import tensorflow as tf
+
 import numpy as np
+import pandas as pd
 StartDate = 20200618
 EndDate = 20200718
 y = "VIX Index"
@@ -33,51 +39,66 @@ for item in RegressionDict_bbg.keys():
     print(item)
     for subitem in RegressionDict_bbg[item]:
         all_assets.append(RegressionDict_bbg[item][subitem])
+
 all_assets = list(np.unique(all_assets))
-
-all_history = EQ_FetchHistoricalPrices.pull_price_history (all_assets,StartDate,EndDate, CshAdjNormal=False)
-
+AllPrices = EQ_FetchHistoricalPrices.pull_price_history(all_assets,StartDate=StartDate,EndDate=EndDate)
 
 
 
+for item in RegressionDict_bbg.keys():
+    print(item)
+    x = AllPrices[RegressionDict_bbg[item]['x']]
+    y = AllPrices[RegressionDict_bbg[item]['x']]
+    n = len(x)
+
+    X = tf.placeholder("float")
+    Y = tf.placeholder("float")
+
+    W = tf.Variable(np.random.randn(), name = "W")
+    b = tf.Variable(np.random.randn(), name = "b")
+    learning_rate = 0.01
+    training_epochs = 1000
+    # Hypothesis
+    y_pred = tf.add(tf.multiply(X, W), b)
+
+    # Mean Squared Error Cost Function
+    cost = tf.reduce_sum(tf.pow(y_pred - Y, 2)) / (2 * n)
+
+    # Gradient Descent Optimizer
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
+
+    # Global Variables Initializer
+    init = tf.global_variables_initializer()
+
+    with tf.Session() as sess:
+
+        # Initializing the Variables
+        sess.run(init)
+
+        # Iterating through all the epochs
+        for epoch in range(training_epochs):
+
+            # Feeding each data point into the optimizer using Feed Dictionary
+            for (_x, _y) in zip(x, y):
+                sess.run(optimizer, feed_dict={X: _x, Y: _y})
+
+                # Displaying the result after every 50 epochs
+            if (epoch + 1) % 50 == 0:
+                # Calculating the cost a every epoch
+                c = sess.run(cost, feed_dict={X: x, Y: y})
+                print("Epoch", (epoch + 1), ": cost =", c, "W =", sess.run(W), "b =", sess.run(b))
+
+                # Storing necessary values to be used outside the Session
+        training_cost = sess.run(cost, feed_dict={X: x, Y: y})
+        weight = sess.run(W)
+        bias = sess.run(b)
+
+        predictions = weight * x + bias
 
 
 
 
-
-
-
-
-
-# print(y)
-#
-#
-# ovrds_=[("IVOL_DELTA_LEVEL","DELTA_LVL_25"),("IVOL_DELTA_PUT_OR_CALL","IVOL_PUT"),("IVOL_MATURITY","MATURITY_90D")]
-# ovrds_=[("IVOL_MATURITY","maturity_90d")]
-#
-#
-# y = blp.historicalRequest("SPX Index", "IVOL_DELTA", StartDate, EndDate,[("IVOL_MATURITY","maturity_90d")])
-# print(y)
-# blp.close()
-#
-# bbg_overds = [('ivol_delta_put_or_call', 'ivol_' + ('put' if p_or_c == 'p' else 'call')),
-#               ('ivol_maturity', 'maturity' + str(tenor_map[tenor]) + 'd'),
-#               ('ivol_delta_level', 'delta_lvl' + str(strike))]
-#
-#
-#
-# y = blp.historicalRequest('SPX Index', 'IVOL_DELTA', StartDate, EndDate, IVOL_DELTA_PUT_OR_CALL='IVOL_PUT',
-#                           IVOL_MATURITY='maturity_30D', IVOL_DELTA_LEVEL='delta_lvl_50')
-# print(y)
-#
-# # defaults1 = {'startDate': StartDate,
-# #             'endDate': EndDate,
-# # }
-# #
-# # # Keyword arguments are added to the request, allowing you to perform advanced queries.
-# # print(blp.historicalRequest('TD CN Equity', 'PCT_CHG_INSIDER_HOLDINGS', '20141231', '20150131',
-# #                             periodicitySelection='WEEKLY'))
-# #
-# # print(blp.historicalRequest('SPX Index', 'IVOL_DELTA', '20200515', '20200818','IVOL'))
-# #
-# # # y = blp.historicalRequest('SPX Index','IVOL_DELTA',defaults1)
+dftrain = pd.read_csv('https://storage.googleapis.com/tf-datasets/titanic/train.csv')
+dfeval = pd.read_csv('https://storage.googleapis.com/tf-datasets/titanic/eval.csv')
+y_train = dftrain.pop('survived')
+y_eval = dfeval.pop('survived')

@@ -40,6 +40,8 @@ def rolling_regression(y, x, window=60):
         X['c'] = 1
     # === Loop... this can be improved ====================================
         estimate_data = []
+        estimate_beta = []
+        estimate_alpha = []
         for i in range(window, x.index.size+1):
             # print (i)
             X_slice = X.values[i-window:i,:] # always index in np as opposed to pandas, much faster
@@ -47,9 +49,19 @@ def rolling_regression(y, x, window=60):
             coeff = np.dot(np.dot(np.linalg.inv(np.dot(X_slice.T, X_slice)), X_slice.T), y_slice)
             est = coeff[0] * x.values[window-1] + coeff[1]
             estimate_data.append(est)
+            estimate_beta.append(coeff[0])
+            estimate_alpha.append(coeff[1])
     # === Assemble ========================================================
-        estimate = pd.Series(data=estimate_data, index=x.index[window-1:])
-        return estimate
+        estimate = pd.Series(data=estimate_data, index=x.index[window-1:]).to_frame()
+        estimate.columns = ['model']
+        estimate_beta = pd.Series(data=estimate_beta, index=x.index[window - 1:]).to_frame()
+        estimate_beta.columns = ['beta']
+
+        estimate_alpha = pd.Series(data=estimate_alpha, index=x.index[window - 1:]).to_frame()
+        estimate_alpha.columns = ['alpha']
+        estimate = pd.concat([estimate,estimate_beta,estimate_alpha],axis=1,sort=True)
+
+    return estimate
 
 
 StartDate = 20200901
@@ -77,20 +89,28 @@ AllPrices = EQ_FetchHistoricalPrices.pull_price_history(all_assets,StartDate=Sta
 AllPrices.columns = [element[0] for element in AllPrices.columns]
 
 
+regressions_dict = {}
+
 for item in RegressionDict_bbg.keys():
     print(item)
 
     xx = AllPrices[RegressionDict_bbg[item]['x']]
+    x_name = RegressionDict_bbg[item]['x']
     yy = AllPrices[RegressionDict_bbg[item]['y']]
+    y_name = RegressionDict_bbg[item]['y']
 
     plt.scatter(xx,yy)
 
-    yy_est = rolling_regression(yy, xx, window=30).to_frame()
-    yy_est.columns = ['model']
-
+    yy_est = rolling_regression(yy, xx, window=30)
+    yy_est.columns = [y_name +'-' +name for name in yy_est.columns]
 
     df_model = pd.concat([yy_est,yy],sort=True,axis=1)
-    df_model['residual'] = df_model['VIX Index'].values - df_model.model
+
+    df_model['residual'] = df_model[y_name].values - df_model[y_name+'-model']
+
+    df_model[x_name] = xx
+
+    regressions_dict[item] = df_model
 
 
 

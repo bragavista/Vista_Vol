@@ -2,6 +2,7 @@ import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 import Util.EmailSender as EmailSender
 import pandas as pd
+import numpy as np
 import seaborn as sns
 from scipy import stats
 import io
@@ -334,6 +335,25 @@ def treat_iv_minus_rv_to_percentile_multindex (all_eq_iv_minus_rv,pctle_window=2
     return Implied_Percentiles_iv_minus_rv
 
 
+def create_final_table (all_eq_implied_vols,all_eq_implied_vols_pctle):
+
+    final_table_eq_imp = pd.DataFrame()
+    unique_assets =     list(np.unique(list(all_eq_implied_vols.columns.get_level_values('Asset'))))
+
+    for asset in unique_assets:
+
+        current_data = all_eq_implied_vols.xs(asset,level='Asset',axis=1)
+        # current_data = all_eq_implied_vols.iloc[:, all_eq_implied_vols.columns.get_level_values(0) == asset]
+
+
+
+
+    for asset in
+
+
+
+
+
 if __name__ == "__main__":
 
     AssetList = ['IBOV Index', 'SPX Index','SX5E Index']
@@ -358,6 +378,8 @@ if __name__ == "__main__":
                                     '360d': 252,
                                     '720d': 504    }
 
+    # Implied_Tenors = ['30d', '60d', '90d', '180d', '360d', '720d']
+    # realized_windows = [22, 44, 66, 126, 252, 504]
 
     all_eq_implied_vols = fetch_eq_imp_vol_multiple_tenors_mindex(AssetList, StartDate, EndDate, Delta, Call_Put,Implied_Tenors=['30d', '60d', '90d', '180d', '360d', '720d'])
     print(all_eq_implied_vols)

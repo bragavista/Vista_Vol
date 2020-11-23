@@ -36,12 +36,12 @@ def pull_price_history (AssetList,StartDate,EndDate, CshAdjNormal=False):
 
 if __name__ == "__main__":
 
-    StartDate = 20110101
-    EndDate = 20201027
-    x = ["CDX HY CDSI GEN 5Y PRC Corp"]
+    StartDate = 20150130
+    EndDate = 20201113
+    x = ["VISTMUL BZ Equity",'BZACCETP Index']
     prices = pull_price_history(AssetList=x,StartDate=StartDate,EndDate=EndDate)
     prices.columns = ['PX_LAST']
-    prices_daily = prices.pct_change()
-    maxday = prices_daily.max()[0]
-    prices_daily.loc[prices_daily['PX_LAST']==maxday]
+    # prices_daily = prices.pct_change()
+    # maxday = prices_daily.max()[0]
+    # prices_daily.loc[prices_daily['PX_LAST']==maxday]
     print(prices)

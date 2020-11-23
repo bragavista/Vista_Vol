@@ -13,41 +13,48 @@ except:
     import FetchData.EQ_FetchHistoricalPrices as EQ_FetchHistoricalPrices
 
 
-class LinearRegression():
-    ''' Class that implemnets Simple Linear Regression '''
-
-    def __init__(self):
-        self.b0 = 0
-        self.b1 = 0
-
-    def fit(self, X, y):
-        mean_x = np.mean(X)
-        mean_y = np.mean(y)
-
-        SSxy = np.sum(np.multiply(X, y)) - len(x) * mean_x * mean_y
-        SSxx = np.sum(np.multiply(X, x)) - len(x) * mean_x * mean_x
-
-        self.b1 = SSxy / SSxx
-        self.b0 = mean_y - self.b1 * mean_x
-
-    def predict(self, input_data):
-        return self.b0 + self.b1 * input_data
-
-import matplotlib.pyplot as plt
-
-import tensorflow.compat.v2.feature_column as fc
-
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
-
-import tensorflow as tf
-
 import numpy as np
 import pandas as pd
-StartDate = 20200618
-EndDate = 20200718
-y = "VIX Index"
-x = "SPX Index"
+import matplotlib.pyplot as plt
+
+
+
+def rolling_regression(y, x, window=60):
+    """
+    y and x must be pandas.Series
+    """
+# === Clean-up ============================================================
+    x = x.dropna()
+    y = y.dropna()
+# === Trim acc to shortest ================================================
+    if x.index.size > y.index.size:
+        x = x[y.index]
+    else:
+        y = y[x.index]
+# === Verify enough space =================================================
+    if x.index.size < window:
+        return None
+    else:
+    # === Add a constant if needed ========================================
+        X = x.to_frame()
+        X['c'] = 1
+    # === Loop... this can be improved ====================================
+        estimate_data = []
+        for i in range(window, x.index.size+1):
+            # print (i)
+            X_slice = X.values[i-window:i,:] # always index in np as opposed to pandas, much faster
+            y_slice = y.values[i-window:i]
+            coeff = np.dot(np.dot(np.linalg.inv(np.dot(X_slice.T, X_slice)), X_slice.T), y_slice)
+            est = coeff[0] * x.values[window-1] + coeff[1]
+            estimate_data.append(est)
+    # === Assemble ========================================================
+        estimate = pd.Series(data=estimate_data, index=x.index[window-1:])
+        return estimate
+
+
+StartDate = 20200901
+EndDate = 20201118
+
 
 RegressionDict_bbg = {  'vix_spx' :
                                 {'y' : "VIX Index", 'x' : "SPX Index"},
@@ -72,61 +79,20 @@ AllPrices.columns = [element[0] for element in AllPrices.columns]
 
 for item in RegressionDict_bbg.keys():
     print(item)
-    x = AllPrices[RegressionDict_bbg[item]['x']].array
-    y = AllPrices[RegressionDict_bbg[item]['y']].array
-    n = len(x)
 
-    X = tf.placeholder("float")
-    Y = tf.placeholder("float")
+    xx = AllPrices[RegressionDict_bbg[item]['x']]
+    yy = AllPrices[RegressionDict_bbg[item]['y']]
 
-    W = tf.Variable(np.random.randn(), name = "W")
-    b = tf.Variable(np.random.randn(), name = "b")
-    learning_rate = 0.01
-    training_epochs = 1000
-    # Hypothesis
-    y_pred = tf.add(tf.multiply(X, W), b)
+    plt.scatter(xx,yy)
 
-    # Mean Squared Error Cost Function
-    cost = tf.reduce_sum(tf.pow(y_pred - Y, 2)) / (2 * n)
+    yy_est = rolling_regression(yy, xx, window=30).to_frame()
+    yy_est.columns = ['model']
 
-    # Gradient Descent Optimizer
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
 
-    # Global Variables Initializer
-    init = tf.global_variables_initializer()
-
-    with tf.Session() as sess:
-
-        # Initializing the Variables
-        sess.run(init)
-
-        # Iterating through all the epochs
-        for epoch in range(training_epochs):
-
-            # Feeding each data point into the optimizer using Feed Dictionary
-            for (_x, _y) in zip(x, y):
-                sess.run(optimizer, feed_dict={X: _x, Y: _y})
-
-                # Displaying the result after every 50 epochs
-            if (epoch + 1) % 50 == 0:
-                # Calculating the cost a every epoch
-                c = sess.run(cost, feed_dict={X: x, Y: y})
-                print("Epoch", (epoch + 1), ": cost =", c, "W =", sess.run(W), "b =", sess.run(b))
-
-                # Storing necessary values to be used outside the Session
-        training_cost = sess.run(cost, feed_dict={X: x, Y: y})
-        weight = sess.run(W)
-        bias = sess.run(b)
-
-        predictions = weight * x + bias
+    df_model = pd.concat([yy_est,yy],sort=True,axis=1)
+    df_model['residual'] = df_model['VIX Index'].values - df_model.model
 
 
 
 
 
-model = LinearRegression()
-model.fit(x, y)
-predictions = model.predict(x)
-plt.scatter(x = x, y = y, color='orange')
-plt.plot(predictions, color='orange')
-plt.show()

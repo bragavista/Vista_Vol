@@ -335,21 +335,21 @@ def treat_iv_minus_rv_to_percentile_multindex (all_eq_iv_minus_rv,pctle_window=2
     return Implied_Percentiles_iv_minus_rv
 
 
-def create_final_table (all_eq_implied_vols,all_eq_implied_vols_pctle):
-
-    final_table_eq_imp = pd.DataFrame()
-    unique_assets =     list(np.unique(list(all_eq_implied_vols.columns.get_level_values('Asset'))))
-
-    for asset in unique_assets:
-
-        current_data = all_eq_implied_vols.xs(asset,level='Asset',axis=1)
-        # current_data = all_eq_implied_vols.iloc[:, all_eq_implied_vols.columns.get_level_values(0) == asset]
-
-
-
-
-    for asset in
-
+# def create_final_table (all_eq_implied_vols,all_eq_implied_vols_pctle):
+#
+#     final_table_eq_imp = pd.DataFrame()
+#     unique_assets =     list(np.unique(list(all_eq_implied_vols.columns.get_level_values('Asset'))))
+#
+#     for asset in unique_assets:
+#
+#         current_data = all_eq_implied_vols.xs(asset,level='Asset',axis=1)
+#         # current_data = all_eq_implied_vols.iloc[:, all_eq_implied_vols.columns.get_level_values(0) == asset]
+#
+#
+#
+#
+#     for asset in
+#
 
 
 

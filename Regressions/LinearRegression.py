@@ -12,11 +12,11 @@ except:
     import Util.EmailSender as EmailSender
     import FetchData.EQ_FetchHistoricalPrices as EQ_FetchHistoricalPrices
 
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import io
+import os
 
 
 def rolling_regression(y, x, window=60):
@@ -64,8 +64,8 @@ def rolling_regression(y, x, window=60):
     return estimate
 
 
-StartDate = 20200901
-EndDate = 20201118
+StartDate = 20200101
+EndDate = 20201123
 
 
 RegressionDict_bbg = {  'vix_spx' :
@@ -77,6 +77,14 @@ RegressionDict_bbg = {  'vix_spx' :
                     'vix_credit_hy':
                                 {'y' : "VIX Index", 'x' : "CDX HY CDSI GEN 5Y PRC Index"}
                     }
+
+
+nickname_table = {
+                    "VIX Index":'VIX',
+                    "SPX Index" : 'SPX',
+                    "CDX HY CDSI GEN 5Y PRC Index": 'CDX HY',
+                    "CDX IG CDSI GEN 5Y SPRD Index": 'CDX IG'
+                }
 
 all_assets = list()
 for item in RegressionDict_bbg.keys():
@@ -110,9 +118,31 @@ for item in RegressionDict_bbg.keys():
 
     df_model[x_name] = xx
 
-    regressions_dict[item] = df_model
+    regressions_dict[item] = { 'x':x_name , 'y': y_name,'data': df_model}
 
 
 
+#prepping graph
+for item in regressions_dict.keys():
 
+    img_format = 'png'
+    residual = regressions_dict[item]['data']['residual'].to_frame()
+    y_name = nickname_table[regressions_dict[item]['y']]
+    x_name = nickname_table[regressions_dict[item]['x']]
+    residual['zero'] = 0
+    residual.plot()
+    f = io.BytesIO()
+    filename = "C:\\Users\\ArthurBraga\\PycharmProjects\\Vista\\dump\\file_delete.png"
+    plt.savefig(filename)
+    f.seek(0)
+    img_data = f.read()
+    plt.close()
 
+    #creating html for email
+    html_string = residual.to_html()
+    subject = 'Regression & Residuals for ' + y_name + ' vs. '  + x_name+ +' - '+str(EndDate)
+    # mail_to = 'mesa@vistacapital.com.br'
+    mail_to = 'abraga@vistacapital.com.br'
+
+    EmailSender.send_email_embed_img(mail_to=mail_to, sender=mail_to, subject=subject, html_body='', image_path=filename)
+    os.remove(filename)

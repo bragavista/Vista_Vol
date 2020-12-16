@@ -68,7 +68,7 @@ def rolling_regression(y, x, window=60):
 
 StartDate = 20190101
 EndDate = 20201201
-window = 66
+window = 126
 
 RegressionDict_bbg = {  'vix_spx' :
                                 {'y' : "VIX Index", 'x' : "SPX Index"},
@@ -77,15 +77,40 @@ RegressionDict_bbg = {  'vix_spx' :
                     'credit_ig_SPX':
                                 {'y' : "CDX IG CDSI GEN 5Y SPRD Index", 'x' : "SPX Index"},
                     'vix_credit_hy':
-                                {'y' : "VIX Index", 'x' : "CDX HY CDSI GEN 5Y PRC Index"}
-                    }
+                                {'y' : "VIX Index", 'x' : "CDX HY CDSI GEN 5Y PRC Index"},
+                    'petr4_oil' :
+                                {'y' : "PETR4 BZ Equity", 'x' : "CL1 Comdty"},
+
+                    'gdx_gold':
+                            {'y': "GDX US Equity", 'x': "XAU Comdty"},
+                    'gdx_gdxj':
+                            {'y': "GDX US Equity", 'x': "GDXJ US Equity"},
+
+                    'vale_rio':
+                            {'y': "VALE US Equity", 'x': "RIO LN Equity"}
+                        }
+
+
+
+
 
 
 nickname_table = {
                     "VIX Index":'VIX',
                     "SPX Index" : 'SPX',
                     "CDX HY CDSI GEN 5Y PRC Index": 'CDX HY',
-                    "CDX IG CDSI GEN 5Y SPRD Index": 'CDX IG'
+                    "CDX IG CDSI GEN 5Y SPRD Index": 'CDX IG',
+                    "PETR4 BZ Equity":'PETR4',
+                    "CL1 Comdty":'WTI FF',
+                    "GDX US Equity":'GDX',
+                    "XAU Comdty": 'Gold Spot',
+                    "GDXJ US Equity":'GDXJ',
+                    "VALE US Equity":"VALE",
+                    "RIO LN Equity":"RIO"
+
+
+
+
                 }
 
 all_assets = list()

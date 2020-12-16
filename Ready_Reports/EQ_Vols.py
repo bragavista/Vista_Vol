@@ -397,6 +397,8 @@ if __name__ == "__main__":
     print(Implied_Percentiles_iv_minus_rv)
 
     normskew = normalized_skew(AssetList, StartDate, EndDate, Maturity, Delta_Center, Delta_Bull, Delta_Bear, Bear_cp, Center_cp,Bull_cp)
+    normskew.plot()
+
     print(normskew)
 
 
@@ -426,6 +428,8 @@ if __name__ == "__main__":
     subject = 'EQ Vol Baseline for ' + str(EndDate)
     # mail_to = 'mesa@vistacapital.com.br'
     mail_to = 'abraga@vistacapital.com.br'
+    mail_from = 'abraga@vistacapital.com.br'
 
-    EmailSender.send_email_embed_img(mail_to=mail_to, sender=mail_to, subject=subject, html_body='', image_path=filename)
+
+    EmailSender.send_email_embed_img(mail_to=mail_from, sender=mail_to, subject=subject, html_body='', image_path=filename)
     os.remove(filename)

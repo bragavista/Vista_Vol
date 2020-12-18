@@ -163,6 +163,7 @@ for item in RegressionDict_bbg.keys():
 
     f = io.BytesIO()
     filename = "C:\\Users\\ArthurBraga\\PycharmProjects\\Vista\\dump\\file_delete.png"
+
     plt.savefig(filename,bbox_inches='tight')
     f.seek(0)
     img_data = f.read()
@@ -171,8 +172,9 @@ for item in RegressionDict_bbg.keys():
     #creating html for email
     html_string = residual.to_html()
     subject = 'Regression & Residuals for ' + y_name + ' vs. '  + x_name+ ' - '+str(EndDate)
-    mail_to = 'mesa@vistacapital.com.br'
+    # mail_to = 'mesa@vistacapital.com.br'
     mail_to = 'abraga@vistacapital.com.br'
     mail_from = 'abraga@vistacapital.com.br'
-    EmailSender.send_email_embed_img(mail_to=mail_to, sender=mail_from, subject=subject, html_body='', image_path=filename)
+    EmailSender.send_email_embed_img(mail_to=mail_to,sender=mail_to,subject=subject,html_body=html_string,image_path=filename)
+
     os.remove(filename)

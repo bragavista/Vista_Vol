@@ -4,7 +4,7 @@ try:
     from Util import QuantMetrics as QuantMetrics
     from Util import EmailSender as EmailSender
     from FetchData import EQ_FetchHistoricalPrices
-    print('try worked')
+    print('try worked and commited from laptop')
 
 except:
     import Util.BloombergAPI_new as BloombergAPI

@@ -205,7 +205,7 @@ if __name__ == "__main__":
     html_string = html_string1 + html_string2 + html_string3
 
     subject = str(cutdate) + ' - Large Equity Liquidations - ' + str(list(target_stock_dict.keys()))
-    mail_to = 'analise@vistacapital.com.br'
+    mail_to = 'investimentos@vistacapital.com.br'
     # mail_to = 'abraga@vistacapital.com.br'
 
 

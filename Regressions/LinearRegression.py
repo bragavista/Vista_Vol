@@ -17,6 +17,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import io
 import os
+from datetime import datetime
+
+StartDate = 20190101
+EndDate = int(datetime.today().strftime('%Y%m%d'))
+
+window = 22
 
 
 def rolling_regression(y, x, window=60):
@@ -66,9 +72,6 @@ def rolling_regression(y, x, window=60):
     return estimate
 
 
-StartDate = 20190101
-EndDate = 20201201
-window = 126
 
 RegressionDict_bbg = {  'vix_spx' :
                                 {'y' : "VIX Index", 'x' : "SPX Index"},
@@ -87,7 +90,11 @@ RegressionDict_bbg = {  'vix_spx' :
                             {'y': "GDX US Equity", 'x': "GDXJ US Equity"},
 
                     'vale_rio':
-                            {'y': "VALE US Equity", 'x': "RIO LN Equity"}
+                            {'y': "VALE US Equity", 'x': "RIO LN Equity"},
+
+                        'NDX_RUSSELL':
+                            {'y': "NDX Index", 'x': "RTY Index"},
+
                         }
 
 
@@ -106,10 +113,9 @@ nickname_table = {
                     "XAU Comdty": 'Gold Spot',
                     "GDXJ US Equity":'GDXJ',
                     "VALE US Equity":"VALE",
-                    "RIO LN Equity":"RIO"
-
-
-
+                    "RIO LN Equity":"RIO",
+                    "NDX Index":"Nasdaq",
+                    "RTY Index":'R2K'
 
                 }
 

@@ -248,7 +248,12 @@ try:
             keys = []
 
             for msg in response:
+
+                # print('test1')
+
                 securityData = msg.getElement('securityData')
+                # print('test2 ')
+                # print(securityData)
                 securityDataList = [securityData.getValueAsElement(i) for i in range(securityData.numValues())]
 
                 for sec in securityDataList:
@@ -296,6 +301,95 @@ try:
             elif isinstance(fields, str):
                 data = data.reset_index('Field', drop=True)
             return data
+
+
+        def bulkRequest2(self, securities, fields, overrides=None, **kwargs):
+            """ Equivalent to the Excel BDS Function.
+
+                If securities are provided as a list, the returned DataFrame will
+                have a MultiIndex.
+
+                You may also pass a list of fields to a bulkRequest.  An appropriate
+                MultiIndex will be generated, however such a DataFrame is unlikely
+                to be useful unless the bulk data fields contain overlapping columns.
+            """
+            response = self.sendRequest('ReferenceData', securities, fields, overrides, kwargs)
+
+            data = []
+            keys = []
+
+            for msg in response:
+
+                # print('test1')
+
+                securityData = msg.getElement('securityData')
+                # print('test2 ')
+                # print(securityData)
+                securityDataList = [securityData.getValueAsElement(i) for i in range(securityData.numValues())]
+
+                for sec in securityDataList:
+                    fieldData = sec.getElement('fieldData')
+                    fieldDataList = [fieldData.getElement(i) for i in range(fieldData.numElements())]
+
+                    fldData = []
+                    fldKeys = []
+
+                    for fld in fieldDataList:
+                        df = DataFrame()
+                        for v in [fld.getValueAsElement(i) for i in range(fld.numValues())]:
+                            # print(v)
+                            s = Series()
+                            for d in [v.getElement(i) for i in range(v.numElements())]:
+                                try:
+                                    # test=d.getValue()
+                                    # print(test)
+                                    s[str(d.name())] = d.getValue()
+
+                                except:
+                                    # There is seriously no end to the shit getValue() can raise.
+                                    pass
+                            # Bloomberg returns this magic number instead of NaN for certain bulk fields.
+                            df = df.append(s.where(s != -2.4245362661989844e-14, np.nan), ignore_index=True)
+
+                        try:
+                            # print('waypoint testing here')
+                            df = df.set_index(df.columns[0])
+                            # print('testing if printing here code 3')
+                            # print(df)
+                            # print('the type of df is')
+                            # print(type(df))
+                            # print(not df.empty)
+                            # print('end of code 3')
+                            if df.empty:
+                                # print('waypoint testing here is df empty')
+                                fldKeys.append(str(fld.name()))
+                                fldData.append(df)
+                                # print('code 4')
+                                # print(fldData)
+                                # print('end of code 4')
+                        except IndexError:
+                            pass
+
+                    if fldData:
+                        keys.append(sec.getElementAsString('security'))
+                        data.append(pd.concat(fldData, keys=fldKeys, names=['Field']))
+
+            if data:
+                data = pd.concat(data, keys=keys, names=['Security'])
+                data.columns.name = 'Element'
+            else:
+                # print('waypoint of problem here')
+                return DataFrame()
+
+            if isinstance(securities, str) and isinstance(fields, str):
+                data = data.reset_index(['Security', 'Field'], drop=True)
+            elif isinstance(securities, str):
+                data = data.reset_index('Security', drop=True)
+            elif isinstance(fields, str):
+                data = data.reset_index('Field', drop=True)
+            return data
+
+
 
         def portfolioDataRequest(self, securities, fields, overrides=None, **kwargs):
             response = self.sendRequest('PortfolioData', securities, fields, overrides, kwargs)
